@@ -1,5 +1,6 @@
 venv/
 __pycache__/
 *.mp3
+*.wav
 hubert_base.pt
 rmvpe.pt
