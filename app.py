@@ -387,3 +387,4 @@ if tts_output is not None:
     # write wav
     writefilename = "tts_output.wav"
     write(writefilename, rate=tts_output[0], data=tts_output[1])
+    os.system(writefilename)
