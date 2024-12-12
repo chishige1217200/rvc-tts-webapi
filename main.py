@@ -14,7 +14,7 @@ app.add_middleware(
 )
 
 # サーバー上の音声ファイルのパス
-AUDIO_FILE_PATH = "generated_audio.mp3"
+AUDIO_FILE_PATH = "generated_audio.wav"
 
 @app.get("/")
 async def generate_audio():
@@ -24,7 +24,7 @@ async def generate_audio():
             with open(AUDIO_FILE_PATH, "rb") as file:
                 yield from file
 
-        return StreamingResponse(iterfile(), media_type="audio/mpeg")
+        return StreamingResponse(iterfile(), media_type="audio/wav")
     except FileNotFoundError:
         return {"error": "File not found"}
 
