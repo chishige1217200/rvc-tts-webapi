@@ -67,6 +67,7 @@ python app.py
 git pull
 venv\Scripts\activate
 pip install -r requirements.txt --upgrade
+pip install uvicorn[standard] fastapi[all]
 ```
 
 ## Troubleshooting
