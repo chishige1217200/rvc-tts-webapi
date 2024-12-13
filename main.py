@@ -14,7 +14,7 @@ app.add_middleware(
 )
 
 # サーバー上の音声ファイルのパス
-AUDIO_FILE_PATH = "generated_audio.wav"
+AUDIO_FILE_PATH = "tts_output.wav"
 
 @app.get("/")
 async def generate_audio():
