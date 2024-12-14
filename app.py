@@ -390,5 +390,7 @@ async def generate_audio(text):
         wav_data = io.BytesIO()
         write(wav_data, rate=tts_output[0], data=tts_output[1])
         wav_data.seek(0)  # ストリームの先頭に戻す
+        write("tts_output.wav", rate=tts_output[0], data=tts_output[1])  # ファイルとしても書き出し
+
         return wav_data
     raise RuntimeError("音声生成に失敗しました。")
