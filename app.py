@@ -1,4 +1,4 @@
-import asyncio
+# import asyncio
 import datetime
 import logging
 import os
@@ -7,6 +7,7 @@ import traceback
 
 import edge_tts
 # import gradio as gr
+import io
 import librosa
 import torch
 from fairseq import checkpoint_utils
@@ -34,8 +35,8 @@ limitation = os.getenv("SYSTEM") == "spaces"
 config = Config()
 
 edge_output_filename = "edge_output.mp3"
-tts_voice_list = asyncio.get_event_loop().run_until_complete(edge_tts.list_voices())
-tts_voices = [f"{v['ShortName']}-{v['Gender']}" for v in tts_voice_list]
+# tts_voice_list = asyncio.get_event_loop().run_until_complete(edge_tts.list_voices())
+# tts_voices = [f"{v['ShortName']}-{v['Gender']}" for v in tts_voice_list]
 
 model_root = "weights"
 models = [
@@ -124,7 +125,7 @@ rmvpe_model = RMVPE("rmvpe.pt", config.is_half, config.device)
 print("rmvpe model loaded.")
 
 
-def tts(
+async def tts(
     model_name,
     speed,
     tts_text,
@@ -158,11 +159,11 @@ def tts(
             speed_str = f"+{speed}%"
         else:
             speed_str = f"{speed}%"
-        asyncio.run(
-            edge_tts.Communicate(
-                tts_text, "-".join(tts_voice.split("-")[:-1]), rate=speed_str
-            ).save(edge_output_filename)
-        )
+        # asyncio.run(
+        await edge_tts.Communicate(
+            tts_text, "-".join(tts_voice.split("-")[:-1]), rate=speed_str
+        ).save(edge_output_filename)
+        # )
         t1 = time.time()
         edge_time = t1 - t0
         audio, sr = librosa.load(edge_output_filename, sr=16000, mono=True)
@@ -366,24 +367,28 @@ def tts(
 
 # app.launch(inbrowser=True)
 
-model_name = models[0]
-speed = 0
-tts_text = "コマンドラインから音声生成を行うことができます。"
-tts_voice = "ja-JP-NanamiNeural-Female"
-f0_key_up = 0
-f0_method = "rmvpe"
-index_rate = 1
-protect0 = 0.33
+async def generate_audio(text):
+    model_name = models[0]
+    speed = 0
+    tts_text = text
+    tts_voice = "ja-JP-NanamiNeural-Female"
+    f0_key_up = 0
+    f0_method = "rmvpe"
+    index_rate = 1
+    protect0 = 0.33
 
-(info_text, edge_tts_output, tts_output) = tts(model_name, speed, tts_text, tts_voice, f0_key_up, f0_method, index_rate, protect0)
+    (info_text, edge_tts_output, tts_output) = await tts(model_name, speed, tts_text, tts_voice, f0_key_up, f0_method, index_rate, protect0)
 
-if tts_output is not None:
-    # data information
-    print("Sampling rate:", tts_output[0])
-    print("Frame num:", tts_output[1].shape[0])
-    print("Sec:", tts_output[1].shape[0] / tts_output[0])
-    print("Numpy dtype:", tts_output[1].dtype)
+    if tts_output is not None:
+        # data information
+        print("Sampling rate:", tts_output[0])
+        print("Frame num:", tts_output[1].shape[0])
+        print("Sec:", tts_output[1].shape[0] / tts_output[0])
+        print("Numpy dtype:", tts_output[1].dtype)
 
-    # write wav
-    writefilename = "tts_output.wav"
-    write(writefilename, rate=tts_output[0], data=tts_output[1])
+        # write wav
+        wav_data = io.BytesIO()
+        write(wav_data, rate=tts_output[0], data=tts_output[1])
+        wav_data.seek(0)  # ストリームの先頭に戻す
+        return wav_data
+    raise RuntimeError("音声生成に失敗しました。")

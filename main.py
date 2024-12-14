@@ -1,8 +1,7 @@
-import os
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, StreamingResponse
-from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
+import app as tts
 
 app = FastAPI()
 
@@ -14,38 +13,34 @@ app.add_middleware(
 )
 
 # サーバー上の音声ファイルのパス
-AUDIO_FILE_PATH = "tts_output.wav"
+AUDIO_FILE_PATH = "edge_output.mp3"
 
-@app.get("/")
-async def generate_audio():
+
+@app.get("/generate-audio/")
+async def generate_audio(text: str):
     try:
-        # ファイルをバイナリモードで開き、ストリームとして返す
-        def iterfile():
-            with open(AUDIO_FILE_PATH, "rb") as file:
-                yield from file
+        data = await tts.generate_audio(text)
+        return StreamingResponse(data, media_type="audio/wav", headers={"Content-Disposition": "inline; filename=data.wav"})
+    except:
+        return {"Error": "音声合成に失敗しました。"}
 
-        return StreamingResponse(iterfile(), media_type="audio/wav")
+@app.get("/download-audio/")
+async def download_audio():
+    try:
+        # ファイルを直接返す
+        return FileResponse(
+            path=AUDIO_FILE_PATH,
+            media_type="audio/mpeg",
+            filename="edge_output.mp3"  # クライアント側でのダウンロード名
+        )
     except FileNotFoundError:
         return {"error": "File not found"}
 
-# @app.get("/download-audio/")
-# async def download_audio():
-#     try:
-#         # ファイルを直接返す
-#         return FileResponse(
-#             path=AUDIO_FILE_PATH,
-#             media_type="audio/mpeg",
-#             filename="audio_file.mp3"  # クライアント側でのダウンロード名
-#         )
-#     except FileNotFoundError:
-#         return {"error": "File not found"}
+@app.get("/play-audio/")
+async def generate_audio():
+    # ファイルをバイナリモードで開き、ストリームとして返す
+    def iterfile():
+        with open(AUDIO_FILE_PATH, "rb") as file:
+            yield from file
 
-# @app.get("/generate-audio/")
-# async def generate_audio():
-#     # ダミーのMP3データ（本番では適切な音声生成や読み込みを行う）
-#     audio_content = BytesIO(b"Dummy MP3 data")
-#     return StreamingResponse(
-#         content=audio_content,
-#         media_type="audio/mpeg",
-#         headers={"Content-Disposition": "inline; filename=generated_audio.mp3"}
-#     )
+    return StreamingResponse(iterfile(), media_type="audio/mpeg")
