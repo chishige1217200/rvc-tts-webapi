@@ -31,6 +31,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 # Install requirements
 pip install -r requirements.txt
+pip install uvicorn[standard] fastapi[all]
 ```
 
 ## Locate RVC models
@@ -67,7 +68,7 @@ python app.py
 git pull
 venv\Scripts\activate
 pip install -r requirements.txt --upgrade
-pip install uvicorn[standard] fastapi[all]
+pip install uvicorn[standard] fastapi[all] --upgrade
 ```
 
 ## Troubleshooting

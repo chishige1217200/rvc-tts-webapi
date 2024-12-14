@@ -393,4 +393,4 @@ async def generate_audio(text):
         write("tts_output.wav", rate=tts_output[0], data=tts_output[1])  # ファイルとしても書き出し
 
         return wav_data
-    raise RuntimeError("音声生成に失敗しました。")
+    raise RuntimeError("音声生成に失敗しました")
