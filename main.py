@@ -14,8 +14,8 @@ app.add_middleware(
 )
 
 
-@app.get("/generate-audio/")
-async def generate_audio(text: str):
+@app.get("/generate/")
+async def generate(text: str):
     try:
         data = await tts.generate_audio(text)
         return StreamingResponse(data, media_type="audio/wav", headers={"Content-Disposition": "inline; filename=data.wav"})
